@@ -1,0 +1,11 @@
+const bearer=[{bearerAuth:[]}];
+const response={description:'Respuesta JSON con ok y data (o error)'};
+export const openapi={openapi:'3.0.3',info:{title:'API Inventario y Ventas',version:'2.0.0',description:'Segundo entregable - Programación Backend Moderna'},servers:[{url:'http://localhost:3000'}],components:{securitySchemes:{bearerAuth:{type:'http',scheme:'bearer',bearerFormat:'JWT'}}},paths:{
+'/api/health':{get:{summary:'Estado del servidor',responses:{200:response}}},
+'/api/auth/register':{post:{summary:'Registrar usuario (el primero será admin)',requestBody:{required:true,content:{'application/json':{schema:{type:'object',required:['name','email','password'],properties:{name:{type:'string'},email:{type:'string'},password:{type:'string'}}}}}},responses:{201:response,400:response}}},
+'/api/auth/login':{post:{summary:'Iniciar sesión',requestBody:{required:true,content:{'application/json':{schema:{type:'object',properties:{email:{type:'string'},password:{type:'string'}}}}}},responses:{200:response,401:response}}},
+'/api/auth/me':{get:{summary:'Perfil autenticado',security:bearer,responses:{200:response}}},
+'/api/products':{get:{summary:'Listar productos',security:bearer,responses:{200:response}},post:{summary:'Crear producto (admin)',security:bearer,requestBody:{required:true,content:{'application/json':{schema:{type:'object',required:['name','price','stock'],properties:{name:{type:'string'},sku:{type:'string'},price:{type:'number'},stock:{type:'integer'},description:{type:'string'}}}}}},responses:{201:response,403:response}}},
+'/api/products/{id}':{parameters:[{name:'id',in:'path',required:true,schema:{type:'string'}}],get:{summary:'Obtener producto',security:bearer,responses:{200:response}},put:{summary:'Editar producto (admin)',security:bearer,responses:{200:response}},delete:{summary:'Eliminar producto (admin)',security:bearer,responses:{204:{description:'Eliminado'}}}},
+'/api/sales':{get:{summary:'Listar ventas (admin)',security:bearer,responses:{200:response}},post:{summary:'Registrar venta y descontar stock',security:bearer,requestBody:{required:true,content:{'application/json':{schema:{type:'object',properties:{items:{type:'array',items:{type:'object',properties:{productId:{type:'string'},quantity:{type:'integer'}}}}}}}}},responses:{201:response,409:response}}}
+}};

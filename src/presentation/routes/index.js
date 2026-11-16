@@ -1,8 +1,18 @@
 import { Router } from 'express';
-import { getHealth } from '../controllers/healthController.js';
-
-const router = Router();
-
-router.get('/health', getHealth);
-
-export default router;
+import { authController } from '../controllers/authController.js';
+import { productController } from '../controllers/productController.js';
+import { saleController } from '../controllers/saleController.js';
+import { authenticate,authorize } from '../middlewares/auth.js';
+import { asyncHandler as a } from '../middlewares/errors.js';
+export const router=Router();
+router.get('/health',(req,res)=>res.json({ok:true,message:'API de inventario y ventas funcionando'}));
+router.post('/auth/register',a(authController.register));
+router.post('/auth/login',a(authController.login));
+router.get('/auth/me',authenticate,a(authController.me));
+router.get('/products',authenticate,a(productController.list));
+router.get('/products/:id',authenticate,a(productController.get));
+router.post('/products',authenticate,authorize('admin'),a(productController.create));
+router.put('/products/:id',authenticate,authorize('admin'),a(productController.update));
+router.delete('/products/:id',authenticate,authorize('admin'),a(productController.remove));
+router.get('/sales',authenticate,authorize('admin'),a(saleController.list));
+router.post('/sales',authenticate,authorize('admin','vendedor'),a(saleController.create));
