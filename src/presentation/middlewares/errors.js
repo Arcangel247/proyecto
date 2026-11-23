@@ -1,10 +1,2 @@
-import { AppError } from '../../domain/errors/AppError.js';
 export const asyncHandler=fn=>(req,res,next)=>Promise.resolve(fn(req,res,next)).catch(next);
-export function notFound(req,res,next){next(new AppError('Ruta no encontrada',404));}
-export function errorHandler(err,req,res,next){
-  if(err.code===11000) return res.status(409).json({ok:false,error:'Dato duplicado'});
-  if(err.name==='CastError'||err.name==='ValidationError') return res.status(400).json({ok:false,error:'Datos inválidos'});
-  const status=err.status||500;
-  if(status===500) console.error(err);
-  res.status(status).json({ok:false,error:status===500?'Error interno del servidor':err.message});
-}
+export function errors(err,req,res,next){if(res.headersSent)return next(err);if(err.name==='SequelizeForeignKeyConstraintError')return res.status(409).json({error:'Recurso relacionado con otros registros'});if(err.name==='SequelizeUniqueConstraintError'||err.code===11000)return res.status(409).json({error:'Registro duplicado'});if(err.name==='ValidationError'||err.name==='SequelizeValidationError')return res.status(400).json({error:'Datos inválidos'});if(err.name==='SequelizeDatabaseError')return res.status(400).json({error:'Error de datos o esquema'});const status=Number(err.status)||500;res.status(status).json({error:status===500?'Error interno del servidor':err.message});}

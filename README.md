@@ -1,59 +1,69 @@
-# Backend de Inventario y Ventas — Segundo Entregable
+# Gestor de Finanzas Personales
 
-**Diplomado Desarrollo Web Full Stack – Módulo III: Programación Backend Moderna**  
-**Proyecto académico:** Inventario y Ventas  
-**Objetivo:** Completar el primer entregable con Clean Architecture, servidor Express, rutas, middlewares, autenticación, autorización y documentación.
+API REST para la administración de ingresos, egresos, categorías, billeteras, presupuestos y tipos de cambio. Implementa Clean Architecture con Node.js, Express, MySQL, MongoDB, Sequelize, Mongoose, JWT y Swagger.
 
-## Arquitectura
-- `src/domain`: reglas, validaciones y errores del dominio (sin Express ni MongoDB).
-- `src/application`: casos de uso de productos, ventas y autenticación.
-- `src/infrastructure`: esquemas y repositorios MongoDB/Mongoose, JWT, conexión.
-- `src/presentation`: controladores HTTP, rutas, middlewares, Swagger.
+## Funcionalidades
 
-## Requisitos
-Node.js 20+ y MongoDB. Para **registrar ventas con descuento de stock atómico** se requiere MongoDB en configuración de réplica (por ejemplo MongoDB Atlas), porque se usa una transacción de MongoDB.
+- Registro e inicio de sesión con JWT.
+- Gestión de categorías, transacciones y presupuestos.
+- Creación, listado y eliminación de billeteras financieras propias.
+- Asociación opcional de transacciones con billeteras (`walletId`).
+- Comprobantes públicos de transacciones, con opción de privacidad.
+- Administración de tipos de cambio restringida al rol `admin`.
+- Resumen de ingresos, egresos y saldo.
 
+## Estructura
 
+- `src/domain`: entidades y reglas de negocio.
+- `src/application`: casos de uso.
+- `src/infrastructure`: modelos, persistencia y servicios de seguridad.
+- `src/presentation`: rutas, controladores, middlewares y documentación.
 
-## Uso y permisos
-1. `POST /api/auth/register` con `{"name":"Administrador","email":"admin@ejemplo.com","password":"ClaveFuerte123"}`. **Solo el primer registro recibe rol admin**, los siguientes son vendedores. En producción, esta inicialización requiere un proceso de provisión más controlado.
-2. `POST /api/auth/login` para obtener el token.
-3. En Swagger seleccione **Authorize** e introduzca el token JWT.
-4. El admin puede crear, editar y borrar productos; vendedores pueden consultar productos y registrar ventas. Solo admin lista todas las ventas.
+## Configuración
 
-## Ejemplo de creación de producto
-`POST /api/products`, con token admin:
-```json
-{"name":"Plancha profesional","sku":"EN-001","price":580,"stock":10,"description":"Producto demo"}
+Requiere Node.js 20+, MySQL y MongoDB. Crear `bd_gastos` en MySQL:
+
+```sql
+CREATE DATABASE IF NOT EXISTS bd_gastos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
-## Ejemplo de venta
-`POST /api/sales`, con token:
-```json
-{"items":[{"productId":"ID_REAL_DEVUELTO_POR_PRODUCTS","quantity":1}]}
+
+Crear `.env` a partir de `.env.example` y definir una clave JWT privada. En Windows se puede generar una clave mediante:
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
-La venta descuenta stock mediante transacción y guarda el precio y nombre del artículo al momento de vender.
 
-## Rutas
-| Método | Ruta | Acceso |
-|---|---|---|
-| GET | `/api/health` | Público |
-| POST | `/api/auth/register` | Público (primer usuario admin) |
-| POST | `/api/auth/login` | Público |
-| GET | `/api/auth/me` | Token |
-| GET | `/api/products` | Token |
-| GET | `/api/products/:id` | Token |
-| POST | `/api/products` | Admin |
-| PUT | `/api/products/:id` | Admin |
-| DELETE | `/api/products/:id` | Admin |
-| GET | `/api/sales` | Admin |
-| POST | `/api/sales` | Admin/vendedor |
+## Instalación y ejecución
 
-## Seguridad
-Se usa hash bcrypt para contraseñas, JWT firmado, Helmet, CORS, límite de peticiones al login, errores centralizados, validaciones en dominio y control de roles.
-**No subir `.env`, contraseñas ni tokens a GitHub.** El archivo `.env.example` solo debe contener marcadores o valores locales.
+```bash
+npm install
+npm run dev
+```
 
-## Notas para el docente
-Este proyecto **mantiene el tema propio del primer entregable (inventario y ventas)** y toma como referencia la organización y conceptos practicados con el proyecto manager-expense-api; no es una copia de su lógica de gastos.
+Swagger: `http://localhost:3000/api-docs`.
 
-## Limitaciones / futuras mejoras
-No se realizó integración con MySQL/Sequelize porque la consigna mostrada no lo exige explícitamente; el ejemplo del docente sí lo usa. Falta una suite de integración con servidor MongoDB de prueba. Las dependencias deben instalarse y validarse en la computadora antes de la entrega; no se incluye `node_modules` ni se ha creado `package-lock.json` en este paquete.
+Pruebas:
+
+```bash
+npm test
+```
+
+## Endpoints principales
+
+| Método | Endpoint | Autenticación |
+| --- | --- | --- |
+| POST | `/api/v1/auth/register` | Pública |
+| POST | `/api/v1/auth/login` | Pública |
+| GET/POST | `/api/v1/wallets` | JWT |
+| DELETE | `/api/v1/wallets/:id` | JWT |
+| GET/POST | `/api/v1/categories` | JWT |
+| GET/POST | `/api/v1/transactions` | JWT |
+| PUT/DELETE | `/api/v1/transactions/:id` | JWT |
+| GET | `/api/v1/transactions/:id/public` | Pública |
+| GET/POST | `/api/v1/currencies` | JWT; POST solo `admin` |
+| GET/POST | `/api/v1/budgets` | JWT |
+| GET | `/api/v1/reports/summary` | JWT |
+
+## Referencia
+
+La organización y los conceptos del proyecto se basan en [manager-expense-api](https://github.com/loquendo2309/manager-expense-api). Esta implementación incorpora los módulos de billeteras, relación con transacciones, comprobantes públicos y control de acceso por roles.

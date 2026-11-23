@@ -1,0 +1,8 @@
+import { DataTypes } from 'sequelize';
+import { sequelize } from './connection.js';
+// Ejercicio 1
+export const WalletModel = sequelize.define('Wallet',{name:{type:DataTypes.STRING(100),allowNull:false},type:{type:DataTypes.ENUM('CASH','BANK','DEBIT_CARD','OTHER'),allowNull:false,defaultValue:'CASH'},userId:{type:DataTypes.STRING,allowNull:false}});
+export const CategoryModel = sequelize.define('Category',{name:{type:DataTypes.STRING,allowNull:false},type:{type:DataTypes.ENUM('INCOME','EXPENSE'),allowNull:false},userId:{type:DataTypes.STRING,allowNull:false}});
+// Ejercicio 2
+export const TransactionModel = sequelize.define('Transaction',{type:{type:DataTypes.ENUM('INCOME','EXPENSE'),allowNull:false},amount:{type:DataTypes.DECIMAL(12,2),allowNull:false},currency:{type:DataTypes.STRING(3),allowNull:false,defaultValue:'BOB'},exchangeRate:{type:DataTypes.DECIMAL(12,4),allowNull:false,defaultValue:1},convertedAmount:{type:DataTypes.DECIMAL(12,2),allowNull:false},description:{type:DataTypes.STRING},date:{type:DataTypes.DATEONLY,allowNull:false},categoryId:{type:DataTypes.INTEGER,allowNull:false},walletId:{type:DataTypes.INTEGER,allowNull:true,references:{model:WalletModel,key:'id'},onDelete:'RESTRICT'},isPrivate:{type:DataTypes.BOOLEAN,allowNull:false,defaultValue:false},userId:{type:DataTypes.STRING,allowNull:false}});
+export const BudgetModel = sequelize.define('Budget',{amountLimit:{type:DataTypes.DECIMAL(12,2),allowNull:false},month:{type:DataTypes.INTEGER,allowNull:false},year:{type:DataTypes.INTEGER,allowNull:false},categoryId:{type:DataTypes.INTEGER,allowNull:false},userId:{type:DataTypes.STRING,allowNull:false}});

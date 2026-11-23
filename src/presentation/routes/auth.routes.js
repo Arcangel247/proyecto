@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import bcrypt from 'bcryptjs';
+import { UserModel } from '../../infrastructure/database/mongo/models.js';
+import { signToken } from '../../infrastructure/security/jwt.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { asyncHandler } from '../middlewares/errors.js';
+import { AppError } from '../../domain/errors/AppError.js';
+export const authRoutes=Router();
+authRoutes.post('/register',asyncHandler(async(req,res)=>{let {name,email,password}=req.body;if(typeof name!=='string'||!name.trim()||typeof email!=='string'||!email.includes('@')||typeof password!=='string'||password.length<8)throw new AppError('Nombre, correo o contraseña inválidos');email=email.trim().toLowerCase();if(await UserModel.exists({email}))throw new AppError('Correo ya registrado',409);const user=await UserModel.create({name:name.trim(),email,password:await bcrypt.hash(password,12),role:'user'});res.status(201).json({id:user.id,name:user.name,email:user.email,role:user.role});}));
+authRoutes.post('/login',asyncHandler(async(req,res)=>{const user=await UserModel.findOne({email:String(req.body.email||'').trim().toLowerCase()});if(!user||!await bcrypt.compare(String(req.body.password||''),user.password))throw new AppError('Credenciales inválidas',401);res.json({token:signToken(user)});}));
+authRoutes.get('/me',authMiddleware,(req,res)=>res.json(req.user));
